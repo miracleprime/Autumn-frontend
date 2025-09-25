@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="static/css/style.css">
+    <title>Вход </title>
+</head>
+<body>
+    <form method="post" action="{{ url_for('routes.login') }}" class="auth-form">
+        <h4>Вход</h4>
+        <p>Логин: <input type="text" name="username" class="auth-form__input"></p>
+        <p>Пароль: <input type="password" name="password" class="auth-form__input"></p>
+        <p><button type="submit">Войти</button></p>
+    <p><a href="{{ url_for('routes.register') }}">Зарегистрироваться </a> </p>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</form>
+</body>
+</html>

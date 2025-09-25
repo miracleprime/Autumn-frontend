@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <form method="post" action="{{ url_for('routes.register') }}" class="auth-form">
+        <h4>Регистрация</h4>
+
+        <p>
+            Логин: <input type="text" name="username" class="auth-form__input" required>
+        </p>
+
+        <p>
+            Пароль: <input type="password" name="password" class="auth-form__input" required>
+        </p>
+
+        <p>
+            Роль:
+            <select name="role" id="role" class="auth-form__input">
+                <option value="student">Студент</option>
+                <option value="employer">Работодатель</option>
+            </select>
+        </p>
+
+        <p>
+            <button type="submit">Зарегистрироваться</button>
+        </p>
+
+        <p>
+            <a href="{{ url_for('routes.login') }}">Уже зарегистрированы? Войти</a>
+        </p>
+
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+    </form>
+</body>
+</html>
+
+
+<!--
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="static/css/style.css">
+    <title>Регистрация</title>
+</head>
+<body>
+    <form method="post" action="{{ url_for('routes.register') }}" class="auth-form">
+        <h4>Регистрация </h4>
+        <p>Логин: <input type="text" name="username" class="auth-form__input"></p>
+        <p>Пароль: <input type="password" name="password" class="auth-form__input"></p>
+        <p><button type="submit">Зарегистрироваться</button></p>
+
+    <p><a href="{{ url_for('routes.login') }}">Уже зарегистрированы? Войти</a></p>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <label for="role">Роль:</label>
+    <select name="role" id="role">
+    <option value="student">Студент</option>
+    <option value="employer">Работодатель</option>
+    </select>
+
+</form>
+</body>
+</html>
+ ->

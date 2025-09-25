@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="="UTF-8">
+    <title>Центр вакансий кампуса</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Центр вакансий кампуса</h2>
+        <div>
+            <span id="currentUser" class="me-3 text-muted"></span>
+            <a href="/logout" class="btn btn-outline-secondary">Выйти</a>
+        </div>
+    </div>
+
+    <!-- Вкладки -->
+    <ul class="nav nav-tabs mb-3" id="mainTabs">
+        <li class="nav-item">
+            <button class="nav-link active" id="jobs-tab" data-bs-toggle="tab" data-bs-target="#jobsTab">Вакансии</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="apps-tab" data-bs-toggle="tab" data-bs-target="#appsTab">Отклики</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profileTab">Профиль</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Вакансии -->
+        <div class="tab-pane fade show active" id="jobsTab">
+            <!-- Фильтр -->
+            <div class="card p-3 mb-3">
+                <h5>Фильтр вакансий</h5>
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <select id="filterType" class="form-select">
+                            <option value="">Все типы</option>
+                            <option value="internship">Стажировка</option>
+                            <option value="assistant">Ассистент</option>
+                            <option value="project">Проект</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <input id="filterKeyword" class="form-control" placeholder="Поиск по ключевым словам">
+                    </div>
+                    <div class="col-md-3">
+                        <button id="applyFilters" class="btn btn-outline-primary w-100">Применить</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Список вакансий -->
+            <div id="jobList" class="mb-3"></div>
+
+            <!-- Кнопка обновить -->
+            <button id="refreshJobs" class="btn btn-secondary">Обновить список</button>
+
+            <!-- Форма добавления вакансии (только для работодателей) -->
+            <div id="createJobForm" class="card p-3 mt-4 d-none">
+                <h5>Создать вакансию</h5>
+                <input id="jobTitle" class="form-control mb-2" placeholder="Название">
+                <textarea id="jobDesc" class="form-control mb-2" placeholder="Описание"></textarea>
+                <select id="jobType" class="form-select mb-2">
+                    <option value="internship">Стажировка</option>
+                    <option value="assistant">Ассистент</option>
+                    <option value="project">Проект</option>
+                </select>
+                <button id="createJobBtn" class="btn btn-success">Создать</button>
+            </div>
+        </div>
+
+        <!-- Отклики -->
+        <div class="tab-pane fade" id="appsTab">
+            <div id="appsList"></div>
+            <button id="refreshApps" class="btn btn-secondary mt-3">Обновить отклики</button>
+        </div>
+
+        <!-- Профиль -->
+        <div class="tab-pane fade" id="profileTab">
+            <div id="profileForm" class="card p-3">
+                <h5>Мой профиль</h5>
+                <div id="profileFields"></div>
+                <button id="saveProfile" class="btn btn-success mt-3">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/script.js"></script>
+</body>
+</html>
