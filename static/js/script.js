@@ -211,30 +211,30 @@ function loadApplications() {
 // ------------------------------
 // Профиль
 // ------------------------------
-function loadProfile() {
-    fetch("/api/profile")
-        .then(r => r.json())
-        .then(user => {
-            let container = document.getElementById("profileFields");
-            container.innerHTML = "";
+//function loadProfile() {
+//    fetch("/api/profile")
+//        .then(r => r.json())
+//        .then(user => {
+//            let container = document.getElementById("profileFields");
+ //           container.innerHTML = "";
 
-            if (user.role === "student") {
-                container.innerHTML = `
-                    <label>ФИО</label>
-                    <input id="fullName" class="form-control mb-2" value="${user.full_name || ''}">
-                    <label>Курс</label>
-                    <input id="course" class="form-control mb-2" value="${user.course || ''}">
-                    <label>Факультет</label>
-                    <input id="faculty" class="form-control mb-2" value="${user.faculty || ''}">
-                `;
-            } else if (user.role === "employer") {
-                container.innerHTML = `
-                    <label>Организация</label>
-                    <input id="organization" class="form-control mb-2" value="${user.organization || ''}">
-                `;
-            }
-        });
-}
+ //           if (user.role === "student") {
+ //               container.innerHTML = `
+ //                   <label>ФИО</label>
+  //                  <input id="fullName" class="form-control mb-2" value="${user.full_name || ''}">
+ //                  <label>Курс</label>
+ //                   <input id="course" class="form-control mb-2" value="${user.course || ''}">
+ //                   <label>Факультет</label>
+ //                   <input id="faculty" class="form-control mb-2" value="${user.faculty || ''}">
+ //               `;
+ //           } else if (user.role === "employer") {
+   //             container.innerHTML = `
+  //                  <label>Организация</label>
+   //                 <input id="organization" class="form-control mb-2" value="${user.organization || ''}">
+  //              `;
+   //         }
+    //    });
+//}
 
 document.getElementById("saveProfile").addEventListener("click", () => {
     let data = {};
@@ -270,3 +270,66 @@ loadCurrentUser().then(() => {
     loadApplications();
     loadProfile();
 });
+
+// =========================
+// ПРОФИЛЬ
+// =========================
+async function loadProfile() {
+    const res = await fetch("/api/profile");
+    if (!res.ok) {
+        document.getElementById("profileFields").innerHTML = "<p>Ошибка загрузки профиля</p>";
+        return;
+    }
+    const user = await res.json();
+
+    let html = `<p><strong>Логин:</strong> ${user.username}</p>`;
+    html += `<p><strong>Роль:</strong> ${user.role === "student" ? "Студент" : "Работодатель"}</p>`;
+
+    if (user.role === "student") {
+        html += `
+          <div class="mb-2">
+            <label>ФИО:</label>
+            <input class="form-control" name="full_name" value="${user.full_name || ""}">
+          </div>
+          <div class="mb-2">
+            <label>Курс:</label>
+            <input class="form-control" name="course" value="${user.course || ""}">
+          </div>
+          <div class="mb-2">
+            <label>Факультет:</label>
+            <input class="form-control" name="faculty" value="${user.faculty || ""}">
+          </div>`;
+    } else if (user.role === "employer") {
+        html += `
+          <div class="mb-2">
+            <label>Организация:</label>
+            <input class="form-control" name="organization" value="${user.organization || ""}">
+          </div>`;
+    }
+
+    document.getElementById("profileFields").innerHTML = html;
+}
+
+document.getElementById("profileForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+
+    const res = await fetch("/api/profile/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    const msg = document.getElementById("profileMessage");
+    if (res.ok) {
+        msg.innerHTML = `<p class="text-success">Профиль обновлён!</p>`;
+        loadProfile(); // обновляем данные
+    } else {
+        msg.innerHTML = `<p class="text-danger">Ошибка обновления</p>`;
+    }
+});
+
+// Загружаем профиль при переключении на вкладку
+document.getElementById("profile-tab").addEventListener("click", loadProfile);
