@@ -274,41 +274,83 @@ loadCurrentUser().then(() => {
 // =========================
 // ПРОФИЛЬ
 // =========================
+// =========================
+// ПРОФИЛЬ
+// =========================
+
+// Загрузка профиля
 async function loadProfile() {
-    const res = await fetch("/api/profile");
-    if (!res.ok) {
-        document.getElementById("profileFields").innerHTML = "<p>Ошибка загрузки профиля</p>";
-        return;
+    try {
+        const response = await fetch("/api/profile");
+        if (!response.ok) throw new Error("Ошибка загрузки профиля");
+        const data = await response.json();
+
+        const fieldsContainer = document.getElementById("profileFields");
+        fieldsContainer.innerHTML = ""; // очищаем перед вставкой
+
+        if (data.role === "student") {
+            fieldsContainer.innerHTML = `
+                <div class="mb-2">
+                    <label>ФИО</label>
+                    <input id="fullName" class="form-control" value="${data.full_name || ""}">
+                </div>
+                <div class="mb-2">
+                    <label>Курс</label>
+                    <input id="course" class="form-control" value="${data.course || ""}">
+                </div>
+                <div class="mb-2">
+                    <label>Факультет</label>
+                    <input id="faculty" class="form-control" value="${data.faculty || ""}">
+                </div>
+            `;
+        } else if (data.role === "employer") {
+            fieldsContainer.innerHTML = `
+                <div class="mb-2">
+                    <label>Организация</label>
+                    <input id="organization" class="form-control" value="${data.organization || ""}">
+                </div>
+            `;
+        } else {
+            fieldsContainer.innerHTML = `<p>Неизвестная роль</p>`;
+        }
+    } catch (err) {
+        console.error("Ошибка при загрузке профиля", err);
     }
-    const user = await res.json();
-
-    let html = `<p><strong>Логин:</strong> ${user.username}</p>`;
-    html += `<p><strong>Роль:</strong> ${user.role === "student" ? "Студент" : "Работодатель"}</p>`;
-
-    if (user.role === "student") {
-        html += `
-          <div class="mb-2">
-            <label>ФИО:</label>
-            <input class="form-control" name="full_name" value="${user.full_name || ""}">
-          </div>
-          <div class="mb-2">
-            <label>Курс:</label>
-            <input class="form-control" name="course" value="${user.course || ""}">
-          </div>
-          <div class="mb-2">
-            <label>Факультет:</label>
-            <input class="form-control" name="faculty" value="${user.faculty || ""}">
-          </div>`;
-    } else if (user.role === "employer") {
-        html += `
-          <div class="mb-2">
-            <label>Организация:</label>
-            <input class="form-control" name="organization" value="${user.organization || ""}">
-          </div>`;
-    }
-
-    document.getElementById("profileFields").innerHTML = html;
 }
+
+// Сохранение профиля
+document.getElementById("saveProfile").addEventListener("click", async () => {
+    try {
+        const fields = {};
+
+        if (document.getElementById("fullName")) {
+            fields.full_name = document.getElementById("fullName").value;
+            fields.course = document.getElementById("course").value;
+            fields.faculty = document.getElementById("faculty").value;
+        }
+        if (document.getElementById("organization")) {
+            fields.organization = document.getElementById("organization").value;
+        }
+
+        const response = await fetch("/api/profile", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(fields)
+        });
+
+        if (!response.ok) throw new Error("Ошибка сохранения");
+
+        alert("Профиль обновлён!");
+        loadProfile();
+    } catch (err) {
+        console.error("Ошибка при сохранении профиля", err);
+        alert("Не удалось сохранить профиль");
+    }
+});
+
+// Загружаем профиль при переключении на вкладку
+document.getElementById("profile-tab").addEventListener("click", loadProfile);
+
 
 document.getElementById("profileForm").addEventListener("submit", async (e) => {
     e.preventDefault();
