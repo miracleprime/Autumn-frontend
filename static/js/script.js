@@ -150,63 +150,76 @@ document.getElementById("createJobBtn")?.addEventListener("click", () => {
 // ------------------------------
 // Отклики
 // ------------------------------
-function loadApplications() {
-    fetch("/api/applications")
-        .then(r => r.json())
-        .then(apps => {
-            let container = document.getElementById("appsList");
-            container.innerHTML = "";
+async function loadApplications() {
+    try {
+        const res = await fetch("/api/applications");
+        if (!res.ok) throw new Error("Ошибка загрузки откликов");
+        const apps = await res.json();
 
-            if (apps.length === 0) {
-                container.innerHTML = "<p class='text-muted'>Нет откликов</p>";
-                return;
-            }
+        const container = document.getElementById("appsList");
+        container.innerHTML = "";
 
-            apps.forEach(app => {
-                let div = document.createElement("div");
-                div.classList.add("card", "mb-2", "p-3", "shadow-sm");
+        if (apps.length === 0) {
+            container.innerHTML = `<p class="text-muted">Откликов пока нет.</p>`;
+            return;
+        }
 
-                div.innerHTML = `
-                    <p><b>Вакансия:</b> ${app.job_title}</p>
-                    <p><b>Студент:</b> ${app.student}</p>
-                    <p><b>Резюме:</b> ${app.resume_url}</p>
-                    <p><b>Сопроводительное письмо:</b> ${app.cover_letter || "-"}</p>
-                    <p><b>Статус:</b> ${statusMap[app.status] || app.status}</p>
-                `;
+        apps.forEach(app => {
+            const div = document.createElement("div");
 
-                if (currentUser.role === "employer") {
-                    div.innerHTML += `
-                        <div class="btn-group mt-2">
-                            <button class="btn btn-sm btn-outline-secondary statusBtn" data-id="${app.id}" data-status="in_review">На рассмотрении</button>
-                            <button class="btn btn-sm btn-outline-primary statusBtn" data-id="${app.id}" data-status="invited">Пригласить</button>
-                            <button class="btn btn-sm btn-outline-success statusBtn" data-id="${app.id}" data-status="accepted">Принять</button>
-                            <button class="btn btn-sm btn-outline-danger statusBtn" data-id="${app.id}" data-status="rejected">Отклонить</button>
-                        </div>
-                    `;
-                }
+            div.innerHTML = `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Вакансия: ${app.job_title || "—"}</h5>
+                        <p class="card-text"><strong>Студент:</strong> ${app.student || "—"}</p>
+                        <p class="card-text"><strong>ФИО:</strong> ${app.student_full_name || "—"}</p>
+                        <p class="card-text"><strong>Курс:</strong> ${app.student_course || "—"}</p>
+                        <p class="card-text"><strong>Факультет:</strong> ${app.student_faculty || "—"}</p>
+                        <p class="card-text"><strong>Организация:</strong> ${app.organization || "—"}</p>
+                        <p class="card-text"><strong>Статус:</strong> ${statusMap[app.status] || app.status}</p>
+                        <p class="card-text"><strong>Резюме:</strong> ${app.resume_url || "—"}</p>
+                        <p class="card-text"><strong>Сопроводительное письмо:</strong> ${app.cover_letter || "—"}</p>
 
-                container.appendChild(div);
-            });
+                        ${app.can_manage ? `
+                            <div class="btn-group mt-2">
+                                <button class="btn btn-sm btn-outline-secondary statusBtn" data-id="${app.id}" data-status="in_review">На рассмотрении</button>
+                                <button class="btn btn-sm btn-outline-primary statusBtn" data-id="${app.id}" data-status="invited">Пригласить</button>
+                                <button class="btn btn-sm btn-outline-success statusBtn" data-id="${app.id}" data-status="accepted">Принять</button>
+                                <button class="btn btn-sm btn-outline-danger statusBtn" data-id="${app.id}" data-status="rejected">Отклонить</button>
+                            </div>
+                        ` : ""}
+                    </div>
+                </div>
+            `;
 
-            document.querySelectorAll(".statusBtn").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    let appId = btn.dataset.id;
-                    let newStatus = btn.dataset.status;
+            container.appendChild(div);
+        });
 
-                    fetch(`/api/applications/${appId}`, {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ status: newStatus })
-                    })
-                    .then(r => r.json())
-                    .then(data => {
-                        alert(data.message || data.error);
-                        loadApplications();
-                    });
+        // навешиваем обработчики на кнопки статусов
+        document.querySelectorAll(".statusBtn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const appId = btn.dataset.id;
+                const status = btn.dataset.status;
+
+                const res = await fetch(`/api/applications/${appId}/status`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status })
                 });
+
+                if (res.ok) {
+                    loadApplications(); // обновляем список
+                } else {
+                    alert("Ошибка обновления статуса");
+                }
             });
         });
+
+    } catch (err) {
+        console.error("Ошибка при загрузке откликов", err);
+    }
 }
+
 
 // ------------------------------
 // Профиль
