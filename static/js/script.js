@@ -221,34 +221,6 @@ async function loadApplications() {
 }
 
 
-// ------------------------------
-// Профиль
-// ------------------------------
-//function loadProfile() {
-//    fetch("/api/profile")
-//        .then(r => r.json())
-//        .then(user => {
-//            let container = document.getElementById("profileFields");
- //           container.innerHTML = "";
-
- //           if (user.role === "student") {
- //               container.innerHTML = `
- //                   <label>ФИО</label>
-  //                  <input id="fullName" class="form-control mb-2" value="${user.full_name || ''}">
- //                  <label>Курс</label>
- //                   <input id="course" class="form-control mb-2" value="${user.course || ''}">
- //                   <label>Факультет</label>
- //                   <input id="faculty" class="form-control mb-2" value="${user.faculty || ''}">
- //               `;
- //           } else if (user.role === "employer") {
-   //             container.innerHTML = `
-  //                  <label>Организация</label>
-   //                 <input id="organization" class="form-control mb-2" value="${user.organization || ''}">
-  //              `;
-   //         }
-    //    });
-//}
-
 document.getElementById("saveProfile").addEventListener("click", () => {
     let data = {};
     if (currentUser.role === "student") {
@@ -284,12 +256,8 @@ loadCurrentUser().then(() => {
     loadProfile();
 });
 
-// =========================
 // ПРОФИЛЬ
-// =========================
-// =========================
-// ПРОФИЛЬ
-// =========================
+
 
 // Загрузка профиля
 async function loadProfile() {
