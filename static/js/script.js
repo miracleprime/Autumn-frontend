@@ -365,26 +365,5 @@ document.getElementById("saveProfile").addEventListener("click", async () => {
 document.getElementById("profile-tab").addEventListener("click", loadProfile);
 
 
-document.getElementById("profileForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-
-    const res = await fetch("/api/profile/update", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    });
-
-    const msg = document.getElementById("profileMessage");
-    if (res.ok) {
-        msg.innerHTML = `<p class="text-success">Профиль обновлён!</p>`;
-        loadProfile(); // обновляем данные
-    } else {
-        msg.innerHTML = `<p class="text-danger">Ошибка обновления</p>`;
-    }
-});
-
 // Загружаем профиль при переключении на вкладку
 document.getElementById("profile-tab").addEventListener("click", loadProfile);
