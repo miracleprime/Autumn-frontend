@@ -1,19 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <link rel="stylesheet" href="static/css/style.css">
-    <title>Вход </title>
+    <meta charset="UTF-8">
+    <title>Вход</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body>
-    <form method="post" action="{{ url_for('routes.login') }}" class="auth-form">
-        <h4>Вход</h4>
-        <p>Логин: <input type="text" name="username" class="auth-form__input"></p>
-        <p>Пароль: <input type="password" name="password" class="auth-form__input"></p>
-        <p><button type="submit">Войти</button></p>
-    <p><a href="{{ url_for('routes.register') }}">Зарегистрироваться </a> </p>
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
-    {% endif %}
-</form>
+<body class="auth-page">
+    <div class="auth-card">
+        <h2>Вход</h2>
+        <form method="post" action="{{ url_for('routes.login') }}">
+            <label>Логин</label>
+            <input type="text" name="username" required>
+
+            <label>Пароль</label>
+            <input type="password" name="password" required>
+
+            <button type="submit">Войти</button>
+
+            <div class="link">
+                <p>Нет аккаунта? <a href="{{ url_for('routes.register') }}">Зарегистрироваться</a></p>
+            </div>
+
+            {% if error %}
+                <p class="auth-message error">{{ error }}</p>
+            {% endif %}
+        </form>
+    </div>
 </body>
 </html>
