@@ -237,3 +237,54 @@ footer {
   font-size: 13px;
   margin-top: 40px;
 }
+
+/* 🔹 Адаптивная версия под мобильные устройства */
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  .card {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .nav-tabs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-link {
+    text-align: center;
+    margin-bottom: 5px;
+  }
+
+  .auth-form {
+    width: 95%;
+    margin: 0 auto;
+    padding: 15px;
+  }
+
+  .auth-form__input {
+    width: 100%;
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  button, .btn {
+    width: 100%;
+    font-size: 15px;
+    padding: 10px;
+  }
+
+  h2, h4, h5 {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  #jobList, #appsList {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
