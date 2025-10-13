@@ -59,14 +59,23 @@ function loadJobs() {
                     <p><b>Работодатель:</b> ${job.employer}</p>
                 `;
 
+                // 🔹 Кнопка отклика
                 if (currentUser.role === "student") {
-                    html += `<button class="btn btn-primary applyBtn" data-id="${job.id}">Откликнуться</button>`;
+                    html += `
+                        <button class="btn btn-sm btn-outline-primary applyBtn" data-id="${job.id}">
+                            Откликнуться
+                        </button>
+                    `;
                 }
 
-                if (currentUser.role === "employer" && job.employer === currentUser.username) {
+                // 🔹 Кнопка для оценки вакансии (если нужно)
+                if (currentUser.role === "student") {
                     html += `
-                        <button class="btn btn-warning me-2 editBtn" data-id="${job.id}">Редактировать</button>
-                        <button class="btn btn-danger deleteBtn" data-id="${job.id}">Удалить</button>
+                        <div class="mt-2">
+                            <label>Оценка (1–5):</label>
+                            <input type="number" min="1" max="5" step="1" class="form-control w-25 d-inline" id="rate-${job.id}">
+                            <button class="btn btn-sm btn-outline-success rateBtn" data-id="${job.id}">Оценить</button>
+                        </div>
                     `;
                 }
 
@@ -74,10 +83,40 @@ function loadJobs() {
                 container.appendChild(div);
             });
 
-            bindJobButtons();
+            // Кнопка отклика
+            document.querySelectorAll(".applyBtn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    let jobId = btn.dataset.id;
+                    let resume = prompt("Введите ссылку на резюме:");
+                    let cover = prompt("Введите сопроводительное письмо:");
+
+                    fetch(`/api/jobs/${jobId}/apply`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ resume_url: resume, cover_letter: cover })
+                    })
+                    .then(r => r.json())
+                    .then(data => alert(data.message || data.error));
+                });
+            });
+
+            // Кнопка оценки
+            document.querySelectorAll(".rateBtn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    let jobId = btn.dataset.id;
+                    let rating = document.getElementById(`rate-${jobId}`).value;
+
+                    fetch(`/api/jobs/${jobId}/rate`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ rating })
+                    })
+                    .then(r => r.json())
+                    .then(data => alert(data.message || data.error));
+                });
+            });
         });
 }
-
 function bindJobButtons() {
     document.querySelectorAll(".applyBtn").forEach(btn => {
         btn.addEventListener("click", () => {
@@ -179,29 +218,42 @@ async function loadApplications() {
                         <p class="card-text"><strong>Статус:</strong> ${statusMap[app.status] || app.status}</p>
                         <p class="card-text"><strong>Резюме:</strong> ${app.resume_url || "—"}</p>
                         <p class="card-text"><strong>Сопроводительное письмо:</strong> ${app.cover_letter || "—"}</p>
-
-                        ${app.can_manage ? `
-                            <div class="btn-group mt-2">
-                                <button class="btn btn-sm btn-outline-secondary statusBtn" data-id="${app.id}" data-status="in_review">На рассмотрении</button>
-                                <button class="btn btn-sm btn-outline-primary statusBtn" data-id="${app.id}" data-status="invited">Пригласить</button>
-                                <button class="btn btn-sm btn-outline-success statusBtn" data-id="${app.id}" data-status="accepted">Принять</button>
-                                <button class="btn btn-sm btn-outline-danger statusBtn" data-id="${app.id}" data-status="rejected">Отклонить</button>
-                            </div>
-                        ` : ""}
-                    </div>
-                </div>
             `;
 
+            // ⭐ Добавляем возможность оценить стажировку (только для студента)
+            if (app.status === "accepted" && app.rating == null && app.student_full_name) {
+                div.innerHTML += `
+                    <label>Ваша оценка стажировки:</label>
+                    <input type="number" min="1" max="5" id="rating-${app.id}" class="form-control w-25 mb-2">
+                    <button class="btn btn-sm btn-primary rateBtn" data-id="${app.id}">Оценить</button>
+                `;
+            } else if (app.rating) {
+                div.innerHTML += `<p><b>Ваша оценка:</b> ${app.rating} ⭐</p>`;
+            }
+
+            // Кнопки управления для работодателя
+            if (app.can_manage) {
+                div.innerHTML += `
+                    <div class="btn-group mt-2">
+                        <button class="btn btn-sm btn-outline-secondary statusBtn" data-id="${app.id}" data-status="in_review">На рассмотрении</button>
+                        <button class="btn btn-sm btn-outline-primary statusBtn" data-id="${app.id}" data-status="invited">Пригласить</button>
+                        <button class="btn btn-sm btn-outline-success statusBtn" data-id="${app.id}" data-status="accepted">Принять</button>
+                        <button class="btn btn-sm btn-outline-danger statusBtn" data-id="${app.id}" data-status="rejected">Отклонить</button>
+                    </div>
+                `;
+            }
+
+            div.innerHTML += `</div></div>`;
             container.appendChild(div);
         });
 
-        // навешиваем обработчики на кнопки статусов
+        // Обработчики кнопок изменения статусов
         document.querySelectorAll(".statusBtn").forEach(btn => {
             btn.addEventListener("click", async () => {
                 const appId = btn.dataset.id;
                 const status = btn.dataset.status;
 
-                const res = await fetch(`/api/applications/${appId}/status`, {
+                const res = await fetch(`/api/applications/${appId}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ status })
@@ -215,10 +267,39 @@ async function loadApplications() {
             });
         });
 
+        // 🔹 Обработчики кнопок "Оценить"
+        document.querySelectorAll(".rateBtn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const appId = btn.dataset.id;
+                const rating = document.getElementById(`rating-${appId}`).value;
+
+                if (!rating || rating < 1 || rating > 5) {
+                    alert("Введите оценку от 1 до 5");
+                    return;
+                }
+
+                const res = await fetch(`/api/rate/${appId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ rating: parseInt(rating) })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert("Спасибо за вашу оценку!");
+                    loadApplications();
+                } else {
+                    alert("Ошибка при отправке оценки: " + (data.error || "Неизвестная ошибка"));
+                }
+            });
+        });
+
     } catch (err) {
         console.error("Ошибка при загрузке откликов", err);
     }
 }
+
 
 
 document.getElementById("saveProfile").addEventListener("click", () => {
