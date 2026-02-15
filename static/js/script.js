@@ -1,3 +1,16 @@
+
+async function uploadResume(file) {
+    const fd = new FormData();
+    fd.append("file", file);
+
+    const res = await fetch("/api/upload", {
+        method: "POST",
+        body: fd
+    });
+
+    return res.json(); // {url: "..."}
+}
+
 let currentUser = {};
 const statusMap = {
     "submitted": "Подано",
@@ -15,11 +28,18 @@ function loadCurrentUser() {
         .then(r => r.json())
         .then(user => {
             currentUser = user;
+
             document.getElementById("currentUser").textContent =
                 `${user.username} (${user.role})`;
 
+            // Показываем форму создания вакансии работодателю
             if (user.role === "employer") {
                 document.getElementById("createJobForm").classList.remove("d-none");
+            }
+
+            // 🔥 Скрываем загрузку резюме если НЕ студент
+            if (user.role !== "student") {
+                document.getElementById("resumeUploadBlock")?.classList.add("d-none");
             }
         });
 }
@@ -59,7 +79,7 @@ function loadJobs() {
                     <p><b>Работодатель:</b> ${job.employer}</p>
                 `;
 
-                // 🔹 Кнопка отклика
+                // Кнопка отклика
                 if (currentUser.role === "student") {
                     html += `
                         <button class="btn btn-sm btn-outline-primary applyBtn" data-id="${job.id}">
@@ -68,15 +88,21 @@ function loadJobs() {
                     `;
                 }
 
-                // 🔹 Кнопка для оценки вакансии (если нужно)
+                // Кнопка для оценки вакансии (если нужно)
+                // Добавляем рейтинг (для студентов)
                 if (currentUser.role === "student") {
                     html += `
                         <div class="mt-2">
-                            <label>Оценка (1–5):</label>
+                            <label>Поставить оценку стажировке:</label>
                             <input type="number" min="1" max="5" step="1" class="form-control w-25 d-inline" id="rate-${job.id}">
                             <button class="btn btn-sm btn-outline-success rateBtn" data-id="${job.id}">Оценить</button>
+                            <p class="text-muted mt-2">Текущая оценка: ${job.job_rating ? job.job_rating.toFixed(1) : "нет"} ⭐</p>
+
                         </div>
                     `;
+                } else if (job.rating) {
+                    // Показываем средний рейтинг для работодателя
+                    html += `<p><b>Средняя оценка:</b> ${job.rating.toFixed(1)} ⭐</p>`;
                 }
 
                 div.innerHTML = html;
@@ -85,20 +111,39 @@ function loadJobs() {
 
             // Кнопка отклика
             document.querySelectorAll(".applyBtn").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    let jobId = btn.dataset.id;
-                    let resume = prompt("Введите ссылку на резюме:");
-                    let cover = prompt("Введите сопроводительное письмо:");
+            btn.addEventListener("click", async () => {
 
-                    fetch(`/api/jobs/${jobId}/apply`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ resume_url: resume, cover_letter: cover })
+                let jobId = btn.dataset.id;
+
+                // 1. загружаем файл
+                let resume_url = "";
+                let resumeFileInput = document.getElementById("resumeFile");
+
+                if (resumeFileInput && resumeFileInput.files.length > 0) {
+                    let resp = await uploadResume(resumeFileInput.files[0]);
+                    resume_url = resp.url;  // ← ссылка на файл в /uploads/
+                } else {
+                    alert("Выберите файл резюме!");
+                    return;
+                }
+
+                // 2. берём cover letter
+                let cover = prompt("Введите сопроводительное письмо:");
+
+                // 3. отправляем отклик
+                fetch(`/api/jobs/${jobId}/apply`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        resume_url: resume_url,
+                        cover_letter: cover
                     })
-                    .then(r => r.json())
-                    .then(data => alert(data.message || data.error));
-                });
+                })
+                .then(r => r.json())
+                .then(data => alert(data.message || data.error));
             });
+        });
+
 
             // Кнопка оценки
             document.querySelectorAll(".rateBtn").forEach(btn => {
@@ -116,57 +161,6 @@ function loadJobs() {
                 });
             });
         });
-}
-function bindJobButtons() {
-    document.querySelectorAll(".applyBtn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            let jobId = btn.dataset.id;
-            let resume = prompt("Введите ссылку на резюме:");
-            let cover = prompt("Введите сопроводительное письмо:");
-
-            fetch(`/api/jobs/${jobId}/apply`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ resume_url: resume, cover_letter: cover })
-            })
-            .then(r => r.json())
-            .then(data => alert(data.message || data.error));
-        });
-    });
-
-    document.querySelectorAll(".deleteBtn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            let jobId = btn.dataset.id;
-            if (confirm("Удалить вакансию?")) {
-                fetch(`/api/jobs/${jobId}`, { method: "DELETE" })
-                    .then(r => r.json())
-                    .then(data => {
-                        alert(data.message || data.error);
-                        loadJobs();
-                    });
-            }
-        });
-    });
-
-    document.querySelectorAll(".editBtn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            let jobId = btn.dataset.id;
-            let newTitle = prompt("Введите новое название:");
-            let newDesc = prompt("Введите новое описание:");
-            let newType = prompt("Введите новый тип (internship/assistant/project):");
-
-            fetch(`/api/jobs/${jobId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title: newTitle, description: newDesc, job_type: newType })
-            })
-            .then(r => r.json())
-            .then(data => {
-                alert(data.message || data.error);
-                loadJobs();
-            });
-        });
-    });
 }
 
 document.getElementById("createJobBtn")?.addEventListener("click", () => {
@@ -216,11 +210,18 @@ async function loadApplications() {
                         <p class="card-text"><strong>Факультет:</strong> ${app.student_faculty || "—"}</p>
                         <p class="card-text"><strong>Организация:</strong> ${app.organization || "—"}</p>
                         <p class="card-text"><strong>Статус:</strong> ${statusMap[app.status] || app.status}</p>
-                        <p class="card-text"><strong>Резюме:</strong> ${app.resume_url || "—"}</p>
+                        <p class="card-text">
+                            <strong>Резюме:</strong> 
+                            ${app.resume_url 
+                                ? `<a href="${app.resume_url}" target="_blank" class="btn btn-sm btn-outline-primary">Открыть</a>` 
+                                : "—"}
+                        </p>
+
+
                         <p class="card-text"><strong>Сопроводительное письмо:</strong> ${app.cover_letter || "—"}</p>
             `;
 
-            // ⭐ Добавляем возможность оценить стажировку (только для студента)
+            // Добавляем возможность оценить стажировку (только для студента)
             if (app.status === "accepted" && app.rating == null && app.student_full_name) {
                 div.innerHTML += `
                     <label>Ваша оценка стажировки:</label>
@@ -267,7 +268,7 @@ async function loadApplications() {
             });
         });
 
-        // 🔹 Обработчики кнопок "Оценить"
+        // Обработчики кнопок "Оценить"
         document.querySelectorAll(".rateBtn").forEach(btn => {
             btn.addEventListener("click", async () => {
                 const appId = btn.dataset.id;
