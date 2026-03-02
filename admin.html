@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Админка</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            margin: 0;
+        }
+
+        .navbar {
+            background: #2c3e50;
+            padding: 15px;
+            color: white;
+        }
+
+        .navbar a {
+            color: white;
+            margin-right: 20px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #ecf0f1;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .role {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: white;
+        }
+
+        .student { background: #3498db; }
+        .employer { background: #2ecc71; }
+        .admin { background: #e74c3c; }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    Админка |
+    <a href="#" onclick="loadUsers()">Пользователи</a>
+    <a href="#" onclick="loadJobs()">Вакансии</a>
+    <a href="#" onclick="loadApps()">Отклики</a>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2 id="title">Пользователи</h2>
+        <table id="table"></table>
+    </div>
+</div>
+
+<script>
+function loadUsers() {
+    fetch('/api/admin/users')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById("title").innerText = "Пользователи";
+
+            let html = `
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Роль</th>
+                </tr>
+            `;
+
+            data.forEach(u => {
+                html += `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td>${u.username}</td>
+                        <td>
+                            <span class="role ${u.role}">
+                                ${u.role}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById("table").innerHTML = html;
+        });
+}
+
+function loadJobs() {
+    fetch('/api/admin/jobs')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById("title").innerText = "Вакансии";
+
+            let html = `
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                </tr>
+            `;
+
+            data.forEach(j => {
+                html += `
+                    <tr>
+                        <td>${j.id}</td>
+                        <td>${j.title}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById("table").innerHTML = html;
+        });
+}
+
+function loadApps() {
+    fetch('/api/admin/applications')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById("title").innerText = "Отклики";
+
+            let html = `
+                <tr>
+                    <th>ID</th>
+                    <th>Студент</th>
+                    <th>Вакансия</th>
+                </tr>
+            `;
+
+            data.forEach(a => {
+                html += `
+                    <tr>
+                        <td>${a.id}</td>
+                        <td>${a.student_id}</td>
+                        <td>${a.job_id}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById("table").innerHTML = html;
+        });
+}
+
+// загрузка по умолчанию
+loadUsers();
+</script>
+
+</body>
+</html>
