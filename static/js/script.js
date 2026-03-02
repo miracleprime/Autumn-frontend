@@ -32,12 +32,14 @@ function loadCurrentUser() {
             document.getElementById("currentUser").textContent =
                 `${user.username} (${user.role})`;
 
-            // Показываем форму создания вакансии работодателю
             if (user.role === "employer") {
                 document.getElementById("createJobForm").classList.remove("d-none");
             }
 
-            // 🔥 Скрываем загрузку резюме если НЕ студент
+            if (user.role !== "employer") {
+                document.getElementById("dashboard-tab-btn")?.classList.add("d-none");
+            }
+
             if (user.role !== "student") {
                 document.getElementById("resumeUploadBlock")?.classList.add("d-none");
             }
@@ -73,31 +75,55 @@ function loadJobs() {
                 div.classList.add("card", "mb-3", "p-3", "shadow-sm");
 
                 let html = `
-                    <h5>${job.title}</h5>
-                    <p>${job.description}</p>
-                    <p class="text-muted">Тип: ${job.job_type}</p>
-                    <p><b>Работодатель:</b> ${job.employer}</p>
-                `;
+                    <div class="job-card d-flex justify-content-between align-items-center">
 
+                        <div class="d-flex align-items-center">
+
+                            <div class="job-logo">
+                                🏢
+                            </div>
+
+                            <div class="ms-3">
+                                <h5 class="mb-1">${job.title}</h5>
+
+                                <div class="text-muted small">
+                                    ${job.employer || "Компания"}
+                                </div>
+
+                                <div class="job-type-badge mt-1">
+                                    ${job.job_type}
+                                </div>
+
+                                <div class="rating mt-1">
+                                    ⭐ ${job.job_rating ? job.job_rating.toFixed(1) : "нет оценок"}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="text-end">
+                    `;
                 // Кнопка отклика
                 if (currentUser.role === "student") {
                     html += `
-                        <button class="btn btn-sm btn-outline-primary applyBtn" data-id="${job.id}">
+                        <button class="btn btn-primary applyBtn" data-id="${job.id}">
                             Откликнуться
                         </button>
                     `;
                 }
 
-                // Кнопка для оценки вакансии (если нужно)
-                // Добавляем рейтинг (для студентов)
+                // Кнопка для оценки вакансии 
+                // рейтинг (для студентов)
                 if (currentUser.role === "student") {
                     html += `
                         <div class="mt-2">
-                            <label>Поставить оценку стажировке:</label>
-                            <input type="number" min="1" max="5" step="1" class="form-control w-25 d-inline" id="rate-${job.id}">
-                            <button class="btn btn-sm btn-outline-success rateBtn" data-id="${job.id}">Оценить</button>
-                            <p class="text-muted mt-2">Текущая оценка: ${job.job_rating ? job.job_rating.toFixed(1) : "нет"} ⭐</p>
+                            <input type="number" min="1" max="5" 
+                                class="form-control form-control-sm d-inline w-25" 
+                                id="rate-${job.id}" placeholder="1-5">
 
+                            <button class="btn btn-sm btn-success rateBtn" data-id="${job.id}">
+                                ⭐ Оценить
+                            </button>
                         </div>
                     `;
                 } else if (job.rating) {
@@ -121,13 +147,13 @@ function loadJobs() {
 
                 if (resumeFileInput && resumeFileInput.files.length > 0) {
                     let resp = await uploadResume(resumeFileInput.files[0]);
-                    resume_url = resp.url;  // ← ссылка на файл в /uploads/
+                    resume_url = resp.url; 
                 } else {
                     alert("Выберите файл резюме!");
                     return;
                 }
 
-                // 2. берём cover letter
+                // 2
                 let cover = prompt("Введите сопроводительное письмо:");
 
                 // 3. отправляем отклик
@@ -221,7 +247,6 @@ async function loadApplications() {
                         <p class="card-text"><strong>Сопроводительное письмо:</strong> ${app.cover_letter || "—"}</p>
             `;
 
-            // Добавляем возможность оценить стажировку (только для студента)
             if (app.status === "accepted" && app.rating == null && app.student_full_name) {
                 div.innerHTML += `
                     <label>Ваша оценка стажировки:</label>
@@ -232,7 +257,6 @@ async function loadApplications() {
                 div.innerHTML += `<p><b>Ваша оценка:</b> ${app.rating} ⭐</p>`;
             }
 
-            // Кнопки управления для работодателя
             if (app.can_manage) {
                 div.innerHTML += `
                     <div class="btn-group mt-2">
@@ -261,7 +285,7 @@ async function loadApplications() {
                 });
 
                 if (res.ok) {
-                    loadApplications(); // обновляем список
+                    loadApplications();
                 } else {
                     alert("Ошибка обновления статуса");
                 }
@@ -336,7 +360,9 @@ loadCurrentUser().then(() => {
     loadJobs();
     loadApplications();
     loadProfile();
+    loadDashboard();
 });
+
 
 // ПРОФИЛЬ
 
@@ -349,8 +375,7 @@ async function loadProfile() {
         const data = await response.json();
 
         const fieldsContainer = document.getElementById("profileFields");
-        fieldsContainer.innerHTML = ""; // очищаем перед вставкой
-
+        fieldsContainer.innerHTML = ""; 
         if (data.role === "student") {
             fieldsContainer.innerHTML = `
                 <div class="mb-2">
@@ -380,6 +405,26 @@ async function loadProfile() {
         console.error("Ошибка при загрузке профиля", err);
     }
 }
+
+async function loadDashboard() {
+    if (currentUser.role !== "employer") return;
+
+    try {
+        const res = await fetch("/api/employer/dashboard");
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        document.getElementById("statJobs").textContent = data.total_jobs;
+        document.getElementById("statApps").textContent = data.total_applications;
+        document.getElementById("statAccepted").textContent = data.accepted_count;
+        document.getElementById("statRating").textContent = data.average_rating + " ⭐";
+
+    } catch (err) {
+        console.error("Ошибка загрузки статистики", err);
+    }
+}
+
 
 // Сохранение профиля
 document.getElementById("saveProfile").addEventListener("click", async () => {

@@ -20,6 +20,13 @@
     <!-- Вкладки -->
     <ul class="nav nav-tabs mb-3" id="mainTabs">
         <li class="nav-item">
+            <button class="nav-link" id="dashboard-tab-btn" data-bs-toggle="tab" data-bs-target="#dashboardTab">
+                Статистика
+            </button>
+
+        </li>
+
+        <li class="nav-item">
             <button class="nav-link active" id="jobs-tab" data-bs-toggle="tab" data-bs-target="#jobsTab">Вакансии</button>
         </li>
         <li class="nav-item">
@@ -92,6 +99,54 @@
                 <button id="saveProfile" class="btn btn-success mt-3">Сохранить</button>
             </div>
         </div>
+        <!-- Статистика -->
+        <!-- Статистика -->
+<div class="tab-pane fade" id="dashboardTab">
+    <div class="container mt-3">
+
+        <div class="row g-3">
+
+            <div class="col-md-3">
+                <div class="card text-center shadow stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Вакансии</h6>
+                        <h2 id="statJobs" class="fw-bold text-primary">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card text-center shadow stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Отклики</h6>
+                        <h2 id="statApps" class="fw-bold text-dark">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card text-center shadow stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Приняты</h6>
+                        <h2 id="statAccepted" class="fw-bold text-success">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card text-center shadow stat-card">
+                    <div class="card-body">
+                        <h6 class="text-muted">Средний рейтинг</h6>
+                        <h2 id="statRating" class="fw-bold text-warning">0 ⭐</h2>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
     </div>
 </div>
 
