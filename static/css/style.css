@@ -10,7 +10,6 @@ body {
   padding: 0;
 }
 
-/* Заголовок и верхняя панель */
 .container > .d-flex {
   background: white;
   border-radius: 12px;
@@ -23,7 +22,6 @@ h2 {
   color: #007bff;
 }
 
-/* Табуляция */
 .nav-tabs .nav-link {
   border: none;
   border-bottom: 3px solid transparent;
@@ -42,7 +40,6 @@ h2 {
   font-weight: 600;
 }
 
-/* Карточки */
 .card {
   border: none;
   border-radius: 12px;
@@ -60,7 +57,6 @@ h2 {
   font-size: 14px;
 }
 
-/* Кнопки */
 .btn {
   border-radius: 8px;
   transition: all 0.2s ease-in-out;
@@ -72,13 +68,11 @@ h2 {
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Таблицы откликов / профиля */
 #appsList .card,
 #jobList .card {
   border-left: 4px solid #007bff;
 }
 
-/* Форма создания вакансии */
 #createJobForm input,
 #createJobForm textarea,
 #createJobForm select {
@@ -97,9 +91,6 @@ h2 {
   border-radius: 8px;
 }
 
-/* ===================== */
-/* ФОРМЫ ВХОДА / РЕГИСТРАЦИИ */
-/* ===================== */
 
 .auth-page {
   display: flex;
@@ -203,7 +194,6 @@ h2 {
   color: #28a745;
 }
 
-/* Анимация появления */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -215,7 +205,6 @@ h2 {
   }
 }
 
-/* Адаптивность */
 @media (max-width: 480px) {
   .auth-card {
     padding: 30px 25px;
@@ -227,9 +216,7 @@ h2 {
   }
 }
 
-/* ===================== */
-/* FOOTER / ДЕТАЛИ */
-/* ===================== */
+
 footer {
   text-align: center;
   padding: 10px;
@@ -238,7 +225,6 @@ footer {
   margin-top: 40px;
 }
 
-/* 🔹 Адаптивная версия под мобильные устройства */
 @media screen and (max-width: 768px) {
   .container {
     padding: 10px;
